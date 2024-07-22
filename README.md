@@ -18,8 +18,6 @@ The tool also includes a systemd service for continuous monitoring and logging.
   - [Time Range Activities](#time-range-activities)
 - [Logging](#logging)
 - [Help](#help)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
@@ -43,6 +41,8 @@ Ensure the following packages are installed on your system:
 - `docker.io`
 - `nginx`
 - `journalctl`
+- `finger`
+- `jq`
 
 ### Setup
 
@@ -56,9 +56,22 @@ Ensure the following packages are installed on your system:
    ```bash
    sudo ./install.sh
    ```
+   This will install necessary dependencies, set up the devopsfetch command, and   
+   enable the devopsfetch systemd service.
 
 ## Usage
+### Command-line Options
 
+- `-p, --port` : Display all active ports and services.
+- `-p <port_number>` : Display detailed information about a specific port.
+- `-d, --docker` : List all Docker images and containers.
+- `-d <container_name>` : Display detailed information about a specific Docker container.
+- `-n, --nginx` : Display all Nginx domains and their ports.
+- `-n <domain>` : Display detailed configuration information for a specific Nginx domain.
+- `-u, --users` : List all users and their last login times.
+- `-u <username>` : Display detailed information about a specific user.
+- `-t, --time <start> <end>` : Display activities within a specified time range.
+- `-h, --help` : Display usage instructions.
 ### Display Active Ports
 
 To display all active ports and services, run:
@@ -138,7 +151,7 @@ Example:
 
 ## Logging
 
-Logs are stored in the `logs/` directory. Log rotation is implemented to manage log file size. When a log file exceeds a certain size, it is renamed with a `.old` extension, and a new log file is created.
+Logs are stored in the `/var/log/devopsfetch.log` directory. Log rotation is implemented to manage log file size. Log rotation is configured to rotate logs daily, keeping up to 7 days of logs.
 
 ## Help
 
