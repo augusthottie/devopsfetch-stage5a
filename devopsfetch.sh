@@ -101,51 +101,70 @@ docker_container_details() {
 
 # Function to display all Nginx domains and their ports
 list_nginx_domains() {
-    echo "Nginx Domains and Ports:"
-    
-    # Print heading
-    printf "%-40s %-10s %-40s %-10s\n" "Server Name" "Port" "Proxied Host" "Proxied Port"
+    echo "Server Domain                           Proxy                Configuration File"
+    echo "----------------------------------------+-----------------------+----------------------------------------"
 
-    # Process each configuration file
     for file in /etc/nginx/sites-enabled/*; do
-        # Extract server_name directives, ignoring commented lines and empty entries
         server_names=$(grep -E -h "^\s*server_name" "$file" | sed 's/^\s*server_name \(.*\);/\1/' | tr -d ';' | grep -v '^_')
+        proxy_passes=$(grep -E -h "^\s*proxy_pass" "$file" | sed 's/^\s*proxy_pass \(.*\);/\1/' | tr -d ';')
 
-        # Extract listen directives, ignoring commented lines and empty entries
-        listen_ports=$(grep -E -h "^\s*listen" "$file" | sed 's/^\s*listen \(.*\);/\1/' | tr -d ';')
-
-        # Extract proxy_pass directives, ignoring commented lines and empty entries
-        proxy_passes=$(grep -E -h "^\s*proxy_pass" "$file" | sed 's/^\s*proxy_pass \(.*\);/\1/' | tr -d ';' | sed 's/^\(http:\/\/\|https:\/\/\)//')
-
-        # Handle multiple server names and listen ports
         IFS=' ' read -r -a server_name_array <<< "$server_names"
-        IFS=' ' read -r -a listen_array <<< "$listen_ports"
         IFS=' ' read -r -a proxy_pass_array <<< "$proxy_passes"
 
-        # Print each combination of server_name and listen
         for name in "${server_name_array[@]}"; do
-            for port in "${listen_array[@]}"; do
-                # Check if there are proxy_pass entries
-                if [ ${#proxy_pass_array[@]} -eq 0 ]; then
-                    # No proxy_pass entries found
-                    printf "%-40s %-10s %-40s %-10s\n" "$name" "$port" "-" "-"
-                else
-                    # Print each combination of server_name, listen, and proxy_pass
-                    for proxy in "${proxy_pass_array[@]}"; do
-                        # Extract the proxied host and port
-                        proxied_host=$(echo "$proxy" | awk -F: '{print $1}')
-                        proxied_port=$(echo "$proxy" | awk -F: '{print $2}')
-
-                        # Only print valid ports (numerical values) and non-empty domains
-                        if [[ $port =~ ^[0-9]+$ ]] && [[ -n $name ]]; then
-                            printf "%-40s %-10s %-40s %-10s\n" "$name" "$port" "$proxied_host" "${proxied_port:--}"
-                        fi
-                    done
-                fi
+            for proxy in "${proxy_pass_array[@]}"; do
+                printf "%-40s | %-21s | %s\n" "$name" "$proxy" "$file"
             done
         done
     done | sort | uniq
 }
+
+# list_nginx_domains() {
+#     echo "Nginx Domains and Ports:"
+    
+#     # Print heading
+#     printf "%-40s %-10s %-40s %-10s\n" "Server Name" "Port" "Proxied Host" "Proxied Port"
+
+#     # Process each configuration file
+#     for file in /etc/nginx/sites-enabled/*; do
+#         # Extract server_name directives, ignoring commented lines and empty entries
+#         server_names=$(grep -E -h "^\s*server_name" "$file" | sed 's/^\s*server_name \(.*\);/\1/' | tr -d ';' | grep -v '^_')
+
+#         # Extract listen directives, ignoring commented lines and empty entries
+#         listen_ports=$(grep -E -h "^\s*listen" "$file" | sed 's/^\s*listen \(.*\);/\1/' | tr -d ';')
+
+#         # Extract proxy_pass directives, ignoring commented lines and empty entries
+#         proxy_passes=$(grep -E -h "^\s*proxy_pass" "$file" | sed 's/^\s*proxy_pass \(.*\);/\1/' | tr -d ';' | sed 's/^\(http:\/\/\|https:\/\/\)//')
+
+#         # Handle multiple server names and listen ports
+#         IFS=' ' read -r -a server_name_array <<< "$server_names"
+#         IFS=' ' read -r -a listen_array <<< "$listen_ports"
+#         IFS=' ' read -r -a proxy_pass_array <<< "$proxy_passes"
+
+#         # Print each combination of server_name and listen
+#         for name in "${server_name_array[@]}"; do
+#             for port in "${listen_array[@]}"; do
+#                 # Check if there are proxy_pass entries
+#                 if [ ${#proxy_pass_array[@]} -eq 0 ]; then
+#                     # No proxy_pass entries found
+#                     printf "%-40s %-10s %-40s %-10s\n" "$name" "$port" "-" "-"
+#                 else
+#                     # Print each combination of server_name, listen, and proxy_pass
+#                     for proxy in "${proxy_pass_array[@]}"; do
+#                         # Extract the proxied host and port
+#                         proxied_host=$(echo "$proxy" | awk -F: '{print $1}')
+#                         proxied_port=$(echo "$proxy" | awk -F: '{print $2}')
+
+#                         # Only print valid ports (numerical values) and non-empty domains
+#                         if [[ $port =~ ^[0-9]+$ ]] && [[ -n $name ]]; then
+#                             printf "%-40s %-10s %-40s %-10s\n" "$name" "$port" "$proxied_host" "${proxied_port:--}"
+#                         fi
+#                     done
+#                 fi
+#             done
+#         done
+#     done | sort | uniq
+# }
 
 # Function to provide detailed configuration information for a specific domain
 nginx_domain_details() {
@@ -207,8 +226,6 @@ nginx_domain_details() {
     printf "%-15s %-30s %-20s %-40s %-30s %-10s\n" "Port" "Root" "Index" "Server Name" "Proxied Host" "Proxied Port"
     printf "%-15s %-30s %-20s %-40s %-30s %-10s\n" "${port:--}" "${root:--}" "${index:--}" "${server_name:--}" "${proxy_host:--}" "${proxy_port:--}"
 }
-
-nginx_domain_details staging.remixjs.boilerplate.hng.tech
 
 # Function to list all users and their last login times
 list_users() {
