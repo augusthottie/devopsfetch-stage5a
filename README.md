@@ -48,7 +48,7 @@ Ensure the following packages are installed on your system:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/AugustHottie/devopsfetch.git
+   git clone https://github.com/AugustHottie/devopsfetch-stage5a.git
    cd devopsfetch
    ```
 
